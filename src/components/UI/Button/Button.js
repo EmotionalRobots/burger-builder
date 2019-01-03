@@ -4,7 +4,9 @@ import Aux from '../../hoc/Aux';
 
 const button = (props) => (
 
-    <button className={[styles.Button, styles[props.btnType]].join(' ')} onClick={props.clicked}>{props.children}</button>
+    <button className={[styles.Button, styles[props.btnType]].join(' ')}
+        onClick={props.clicked}>{props.children}
+    </button>
 
 
 )
