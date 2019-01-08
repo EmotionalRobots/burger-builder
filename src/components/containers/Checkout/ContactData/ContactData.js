@@ -4,10 +4,65 @@ import styles from './ContactData.module.css'
 import Axios from '../../../../axios-orders';
 import Aux from '../../../hoc/Aux';
 import Spinner from '../../../UI/Spinner/Spinner';
+import Input from '../../../UI/Input/Input';
 
 class ContactData extends Component {
 
     state = {
+        orderForm: {
+            name: {
+                elementType: 'input',
+                elementConfig: {
+                    type: 'text',
+                    placeholder: 'Your name'
+                }, value: '',
+            },
+            phone: {
+                elementType: 'input',
+                elementConfig: {
+                    type: 'text',
+                    placeholder: 'Your phone number'
+                }, value: '',
+            },
+            street: {
+                elementType: 'input',
+                elementConfig: {
+                    type: 'text',
+                    placeholder: 'Your street address'
+                }, value: '',
+            },
+            zip: {
+                elementType: 'input',
+                elementConfig: {
+                    type: 'number',
+                    placeholder: 'Your zip'
+                }, value: '',
+            },
+            country: {
+                elementType: 'input',
+                elementConfig: {
+                    type: 'text',
+                    placeholder: 'Your country'
+                },
+                value: '',
+            },
+
+            email: {
+                elementType: 'input',
+                elementConfig: {
+                    type: 'email',
+                    placeholder: 'Your email'
+                }, value: '',
+            },
+            deliveryMethod: {
+                elementType: 'select',
+                elementConfig: {
+                    options: [{ value: 'fastest', displayedValue: 'Fastest' },
+                    { value: 'cheapest', displayedValue: 'Cheapest' },
+                    ]
+                }, value: '',
+            }
+        },
         name: '',
         email: '',
         address: {
@@ -22,22 +77,16 @@ class ContactData extends Component {
         this.setState({ loading: true });
         event.preventDefault();
         // alert('CONTINUE!');
+        const formData = {};
+        for (let formElementIdentifier in this.state.orderForm) {
+            formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value
+        };
         const order = {
             ingredients: this.props.ingredients,
             price: this.props.price,
-            customer: {
-                name: 'Chris Anderson',
-                phone: '6786026067',
-                address: {
-                    street: '308 Harbor Pointe Parkway',
-                    zip: '30127',
-                    country: 'USA'
-                },
-                email: 'chrisanderson@myself.com',
-            },
-            deliveryMethods: 'fastest'
-
+            orderData: formData
         }
+
         Axios.post('/orders.json', order).then(response => {
             this.setState({ loading: false, purchasing: false });
             this.props.history.push('/');
@@ -47,8 +96,32 @@ class ContactData extends Component {
         })
     }
 
+    onInputChangeHandler = (event, inputIdentifier) => {
+        const updatedOrderForm = {
+            ...this.state.orderForm
+        };
+
+        const updatedFormElement = {
+            ...updatedOrderForm[inputIdentifier]
+        };
+
+        updatedFormElement.value = event.target.value;
+
+        updatedOrderForm[inputIdentifier] = updatedFormElement;
+
+        this.setState({ orderForm: updatedOrderForm });
+
+        // console.log(event.target.value)
+    }
 
     render() {
+        const formElementsArray = [];
+        for (let key in this.state.orderForm) {
+            formElementsArray.push({
+                id: key,
+                config: this.state.orderForm[key]
+            })
+        }
         let form = {};
         if (this.state.loading) {
             form = <Spinner />
@@ -57,12 +130,17 @@ class ContactData extends Component {
             form = (
                 <Aux>
                     <h1>Enter your contact information:</h1>
-                    <input className={styles.Input} type='text' name='name' placeholder='Your name' />
-                    <input className={styles.Input} type='email' name='email' placeholder='Your email' />
-                    <input className={styles.Input} type='text' name='street' placeholder='Your street address' />
-                    <input className={styles.Input} type='number' name='zip' placeholder='Your zip' />
-
-                    <Button btnType="Success" clicked={this.orderHandler}>ORDER</Button>
+                    <form onSubmit={this.orderHandler}>
+                        {formElementsArray.map(myFormElement => (
+                            <Input
+                                key={myFormElement.id}
+                                elementType={myFormElement.config.elementType}
+                                elementConfig={myFormElement.config.elementConfig}
+                                value={myFormElement.config.value}
+                                changed={(event) => this.onInputChangeHandler(event, myFormElement.id)} />
+                        ))}
+                        <Button btnType="Success">ORDER</Button>
+                    </form>
                 </Aux>
             )
         }
